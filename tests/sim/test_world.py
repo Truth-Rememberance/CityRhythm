@@ -17,13 +17,16 @@ EXPECTED_ORDER = [
     "yelahanka",
 ]
 
-# Adjacency exactly as specified (only the five listed sources have entries).
+# Symmetric adjacency: every edge appears at both endpoints (C.8).
 EXPECTED_ADJACENCY = {
     "silk_board": {"koramangala", "electronic_city", "jayanagar"},
+    "whitefield": {"indiranagar"},
+    "hebbal": {"indiranagar", "yelahanka"},
+    "electronic_city": {"silk_board"},
     "koramangala": {"silk_board", "indiranagar", "jayanagar"},
     "indiranagar": {"koramangala", "whitefield", "hebbal"},
-    "hebbal": {"indiranagar", "yelahanka"},
     "jayanagar": {"silk_board", "koramangala"},
+    "yelahanka": {"hebbal"},
 }
 
 PROFILES = {
@@ -55,8 +58,8 @@ def test_adjacency_matches_spec() -> None:
     world = load_world()
     adj = {z: set(v) for z, v in world["adjacency"].items()}
     assert adj == EXPECTED_ADJACENCY
-    # Zones not listed as sources have no adjacency entry in the spec.
-    assert not ({"whitefield", "electronic_city", "yelahanka"} & set(adj))
+    # Keys are emitted in zone order (ERRATA item 7).
+    assert list(world["adjacency"]) == EXPECTED_ORDER
 
 
 def test_profiles_match_spec() -> None:

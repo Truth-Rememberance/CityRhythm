@@ -42,10 +42,35 @@ def load_world(config_path: str | None = None) -> dict:
     return {
         "zone_order": order,
         "zones": {z["id"]: z for z in zones},
-        "adjacency": raw["adjacency"],
+        "adjacency": _symmetric_adjacency(raw["adjacency"], order),
         "default_capacity": raw["default_capacity"],
         "nodes": nodes,
     }
+
+
+def _symmetric_adjacency(raw: dict[str, list[str]], order: list[str]) -> dict[str, list[str]]:
+    """Return an undirected adjacency map: every edge is listed at both ends.
+
+    Config may list an edge once (the spec's one-directional shorthand);
+    the loader adds the reverse edge. Neighbour lists are emitted in zone
+    order (ERRATA item 7) for deterministic diffing.
+    """
+    zones = set(order)
+    undirected: dict[str, set[str]] = {z: set() for z in order}
+    for z, neighbours in raw.items():
+        if z not in zones:
+            raise ValueError(f"adjacency references unknown zone {z!r}")
+        for n in neighbours:
+            if n not in zones:
+                raise ValueError(f"zone {z!r} has unknown neighbour {n!r}")
+            if n == z:
+                raise ValueError(f"zone {z!r} cannot be adjacent to itself")
+            undirected[z].add(n)
+            undirected[n].add(z)
+    empty = [z for z in order if not undirected[z]]
+    if empty:
+        raise ValueError(f"zones with no neighbours: {empty}")
+    return {z: [n for n in order if n in undirected[z]] for z in order}
 
 
 def node_ids(world: dict) -> list[str]:

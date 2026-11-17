@@ -13,10 +13,13 @@
   ],
   "adjacency": {
     "silk_board": ["koramangala", "electronic_city", "jayanagar"],
+    "whitefield": ["indiranagar"],
+    "hebbal": ["indiranagar", "yelahanka"],
+    "electronic_city": ["silk_board"],
     "koramangala": ["silk_board", "indiranagar", "jayanagar"],
     "indiranagar": ["koramangala", "whitefield", "hebbal"],
-    "hebbal": ["indiranagar", "yelahanka"],
-    "jayanagar": ["silk_board", "koramangala"]
+    "jayanagar": ["silk_board", "koramangala"],
+    "yelahanka": ["hebbal"]
   },
   "default_capacity": {
     "traffic": {"value": 200, "unit": "veh_per_min"},
