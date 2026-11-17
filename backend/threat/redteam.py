@@ -1,27 +1,20 @@
-
-import math
+﻿import math
 
 
 def redteam(graph, max_depth=4):
     """
     Analyze potentially damaging paths through a directed
     infrastructure dependency graph.
-
-    Supports:
-    - Existing strength and lag-based ranking.
-    - Optional compromise_cost and damage edge attributes.
-    - Cycle prevention.
-    - Maximum path depth.
-    - Top 10 ranked attack paths.
-
-    Cost and damage are only evaluated when supplied by
-    the graph. They are never invented.
     """
 
     if not isinstance(graph, dict):
         return []
 
-    if not isinstance(max_depth, int) or max_depth < 1:
+    if (
+        not isinstance(max_depth, int)
+        or isinstance(max_depth, bool)
+        or max_depth < 1
+    ):
         raise ValueError("max_depth must be a positive integer")
 
     edges = graph.get("edges", [])
@@ -53,7 +46,6 @@ def redteam(graph, max_depth=4):
         if not 0 <= strength <= 1 or lag <= 0:
             continue
 
-        # Optional R3 attributes.
         cost = edge.get("compromise_cost")
         damage = edge.get("damage")
 
@@ -92,9 +84,7 @@ def redteam(graph, max_depth=4):
         all_costs_known,
         all_damage_known
     ):
-
         if len(path) > 1:
-
             result = {
                 "entry_node": path[0],
                 "path": path,
@@ -103,26 +93,15 @@ def redteam(graph, max_depth=4):
                 "damage_node": path[-1]
             }
 
-            # Only calculate cost/damage ranking when every
-            # edge in this path provides both attributes.
             if all_costs_known and all_damage_known:
-                average_strength = score / max(
-                    sum(
-                        edge["strength"] / edge["lag"]
-                        for edge in path_edges
-                    ),
-                    1e-12
-                ) if False else None
-
                 result["total_compromise_cost"] = round(
                     total_cost, 4
                 )
+
                 result["estimated_damage"] = round(
                     total_damage, 4
                 )
 
-                # Prototype heuristic: higher damage per unit
-                # of compromise cost ranks higher.
                 result["risk_score"] = round(
                     total_damage / max(total_cost, 1e-9),
                     4
@@ -134,7 +113,6 @@ def redteam(graph, max_depth=4):
             return
 
         for edge in adjacency.get(node, []):
-
             next_node = edge["node"]
 
             if next_node in path:
@@ -147,14 +125,21 @@ def redteam(graph, max_depth=4):
                 path + [next_node],
                 score + edge_score,
                 total_lag + edge["lag"],
-                total_cost + (edge["cost"] or 0),
-                total_damage + (edge["damage"] or 0),
+                total_cost + (
+                    edge["cost"]
+                    if edge["cost"] is not None
+                    else 0
+                ),
+                total_damage + (
+                    edge["damage"]
+                    if edge["damage"] is not None
+                    else 0
+                ),
                 all_costs_known and edge["cost"] is not None,
                 all_damage_known and edge["damage"] is not None
             )
 
     for entry in adjacency:
-
         explore(
             entry,
             [entry],
@@ -166,8 +151,6 @@ def redteam(graph, max_depth=4):
             True
         )
 
-    # Use the richer risk score only when all candidate
-    # paths have comparable cost and damage information.
     if results and all(
         "risk_score" in result for result in results
     ):

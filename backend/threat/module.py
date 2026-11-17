@@ -1,16 +1,7 @@
 
-from r4_detector import (
-    physics_consistency,
-    replay_detector,
-    sensor_trust,
-    classify
-)
-
+from r4_detector import classify, physics_consistency, replay_detector, sensor_trust
+from threat.citizen import extract_report, report_sensor_agreement
 from threat.redteam import redteam
-from threat.citizen import (
-    extract_report,
-    report_sensor_agreement
-)
 
 
 class ThreatModule:

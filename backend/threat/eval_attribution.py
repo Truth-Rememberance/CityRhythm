@@ -1,7 +1,6 @@
 
 from r4_detector import classify
 
-
 TEST_CASES = [
     {
         "name": "Confirmed attack indicators",
