@@ -15,43 +15,59 @@ from backend.fix.testing.toy_sim import ToySim
 def main() -> None:
     sim_now = 1199
     incident_start = 1200
-    zone = "silk_board"
-    sim = ToySim(seed=5, start_t=sim_now)
-    sim.inject("heatwave", start_t=incident_start, duration_min=75, zone=zone)
-
-    action_specs = (
-        ("offset_signal", "traffic", {"offset_s": 60}, "traffic"),
-        ("shed_load", "power", {"pct": 80, "feeder": "main"}, "power"),
-        (
-            "shift_pump",
-            "water",
-            {"shift_min": 1, "movable_fraction": 0.8},
-            "water",
-        ),
+    response_zones = (
+        "silk_board",
+        "koramangala",
+        "indiranagar",
+        "whitefield",
+        "hebbal",
+        "electronic_city",
+        "jayanagar",
     )
-    actions = [
-        Action(
-            id=f"{zone}-{system}",
-            type=action_type,
-            dept=dept,
-            zone=zone,
-            params=params,
-            start_t=incident_start,
-            duration_min=90,
+    sim = ToySim(seed=5, start_t=sim_now)
+    sim.inject("heatwave", start_t=incident_start, duration_min=90, zone="silk_board")
+    actions: list[Action] = []
+    for zone in response_zones:
+        actions.extend(
+            [
+                Action(
+                    id=f"{zone}-traffic",
+                    type="offset_signal",
+                    dept="traffic",
+                    zone=zone,
+                    params={"offset_s": 45},
+                    start_t=incident_start + 9,
+                    duration_min=150,
+                ),
+                Action(
+                    id=f"{zone}-power",
+                    type="shed_load",
+                    dept="power",
+                    zone=zone,
+                    params={"pct": 55, "feeder": "main"},
+                    start_t=incident_start + 9,
+                    duration_min=150,
+                ),
+                Action(
+                    id=f"{zone}-water",
+                    type="shift_pump",
+                    dept="water",
+                    zone=zone,
+                    params={"shift_min": 35, "movable_fraction": 0.5},
+                    start_t=incident_start + 9,
+                    duration_min=150,
+                ),
+            ]
         )
-        for action_type, dept, params, system in action_specs
-    ]
     proposals = [
         Proposal(
             action=action,
             utility=1.0,
             rationale="Test intervention.",
-            touches=[f"{zone}.{system}"],
-            expected_load_delta={f"{zone}.{system}": -0.1},
+            touches=[f"{action.zone}.{action.dept}"],
+            expected_load_delta={f"{action.zone}.{action.dept}": -0.1},
         )
-        for action, (_action_type, _dept, _params, system) in zip(
-            actions, action_specs, strict=True
-        )
+        for action in actions
     ]
     plan = build_plan(Resolution(proposals, [], [], [], total_cost=9.0), incident_start)
     result = CounterfactualCoordinator(sim, horizon_min=180).run(
@@ -68,12 +84,11 @@ def main() -> None:
         print(f"  min_service_level: {minimum:.3f}")
         print(f"  minute_of_minimum: {minimum_minute}")
         print(f"  mean_service_level: {sum(service) / len(service):.3f}" if service else "  mean_service_level: n/a")
-
-    affected_zones = sum(
-        min(zone_service, default=1.0) < 0.95
-        for zone_service in result["extras"]["per_zone"]["no_action"].values()
-    )
-    print(f"no_action_zones_affected (service below 0.95): {affected_zones}")
+        affected_zones = sum(
+            min(zone_service, default=1.0) < 0.95
+            for zone_service in result["extras"]["per_zone"][branch].values()
+        )
+        print(f"  zones_affected (service below 0.95): {affected_zones}")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,8 @@ _REGIONAL_NEIGHBORS: dict[str, tuple[str, ...]] = {
     "yelahanka": ("hebbal", "whitefield", "indiranagar"),
 }
 _RECOVERY_HYSTERESIS_MIN = 10
+_OVERLOADED_SERVICE_FACTOR = 0.28
+_COUPLING_SPREAD_SCALE = 0.65
 
 
 class ToySim:
@@ -141,7 +143,7 @@ class ToySim:
             zone_loads = {system: self._loads[f"{zone}.{system}"] for system in _SYSTEMS}
             zone_service = service_level(zone_loads)
             if any(node.startswith(f"{zone}.") for node in self._overloaded):
-                zone_service *= 0.2
+                zone_service *= _OVERLOADED_SERVICE_FACTOR
             service_by_zone[zone] = float(np.clip(zone_service, 0.0, 1.0))
         self._last_service = service_by_zone
         durations = {
@@ -189,6 +191,9 @@ class ToySim:
             params = injection["params"]
             default_boost = {"heatwave": 0.46, "match_end_9pm": 0.42, "signal_hijack": 0.42}[name]
             boost = float(params.get("boost", default_boost))
+            ramp_min = max(1, int(params.get("ramp_min", 7)))
+            ramp_progress = min(1.0, (self._now - injection["start_t"] + 1) / ramp_min)
+            boost *= ramp_progress
             target_zones = (
                 tuple(dict.fromkeys((zone, *_REGIONAL_NEIGHBORS.get(zone, ()))))
                 if zone
@@ -271,7 +276,7 @@ class ToySim:
             if edge["src"] != source:
                 continue
             start = self._now + int(edge["lag_min"])
-            amount = float(edge["strength"]) * 0.45
+            amount = float(edge["strength"]) * _COUPLING_SPREAD_SCALE
             target = edge["dst"]
             for minute in range(start, start + 5):
                 queue = self._shift_queue.setdefault(minute, {})

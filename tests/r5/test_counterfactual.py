@@ -13,44 +13,57 @@ from backend.fix.testing.toy_sim import ToySim
 
 
 def make_plan(start_t: int, zone: str = "silk_board") -> Plan:
-    actions = [
-        Action(
-            id=f"{zone}-traffic",
-            type="offset_signal",
-            dept="traffic",
-            zone=zone,
-            params={"offset_s": 60},
-            start_t=start_t,
-            duration_min=90,
-        ),
-        Action(
-            id=f"{zone}-power",
-            type="shed_load",
-            dept="power",
-            zone=zone,
-            params={"pct": 80, "feeder": "main"},
-            start_t=start_t,
-            duration_min=90,
-        ),
-        Action(
-            id=f"{zone}-water",
-            type="shift_pump",
-            dept="water",
-            zone=zone,
-            params={"shift_min": 1, "movable_fraction": 0.8},
-            start_t=start_t,
-            duration_min=90,
-        ),
-    ]
+    response_zones = (
+        zone,
+        "koramangala",
+        "indiranagar",
+        "whitefield",
+        "hebbal",
+        "electronic_city",
+        "jayanagar",
+    )
+    actions: list[Action] = []
+    for response_zone in dict.fromkeys(response_zones):
+        actions.extend(
+            [
+                Action(
+                    id=f"{response_zone}-traffic",
+                    type="offset_signal",
+                    dept="traffic",
+                    zone=response_zone,
+                    params={"offset_s": 45},
+                    start_t=start_t,
+                    duration_min=150,
+                ),
+                Action(
+                    id=f"{response_zone}-power",
+                    type="shed_load",
+                    dept="power",
+                    zone=response_zone,
+                    params={"pct": 55, "feeder": "main"},
+                    start_t=start_t,
+                    duration_min=150,
+                ),
+                Action(
+                    id=f"{response_zone}-water",
+                    type="shift_pump",
+                    dept="water",
+                    zone=response_zone,
+                    params={"shift_min": 35, "movable_fraction": 0.5},
+                    start_t=start_t,
+                    duration_min=150,
+                ),
+            ]
+        )
     proposals = [
         Proposal(
             action=action,
             utility=1.0,
             rationale="Test intervention.",
-            touches=[f"{zone}.{system}"],
-            expected_load_delta={f"{zone}.{system}": -0.1},
+            touches=[f"{action.zone}.{action.dept}"],
+            expected_load_delta={f"{action.zone}.{action.dept}": -0.1},
         )
-        for action, system in zip(actions, ("traffic", "power", "water"), strict=True)
+        for action in actions
     ]
     return build_plan(Resolution(proposals, [], [], [], total_cost=9.0), start_t)
 
@@ -68,14 +81,26 @@ def test_toy_sim_forks_are_identical_and_independent() -> None:
 
 def test_counterfactual_plan_strictly_improves_heatwave_recovery() -> None:
     sim = ToySim(seed=5, start_t=1199)
-    sim.inject("heatwave", start_t=1200, duration_min=75, zone="silk_board")
-    result = CounterfactualCoordinator(sim, horizon_min=180).run(
-        make_plan(1200), sim_now=1199, incident_start=1200
+    sim.inject("heatwave", start_t=1200, duration_min=90, zone="silk_board")
+    result = CounterfactualCoordinator(sim, horizon_min=240).run(
+        make_plan(1209), sim_now=1199, incident_start=1200
     )
-    assert result["recovery_min"]["with_plan"] < result["recovery_min"]["no_action"]
+    no_action_min = min(result["no_action"]["service_level"])
+    with_plan_min = min(result["with_plan"]["service_level"])
+    affected_no_action = sum(
+        min(values, default=1.0) < 0.95
+        for values in result["extras"]["per_zone"]["no_action"].values()
+    )
+    assert no_action_min < 0.4
+    assert affected_no_action >= 3
+    assert (
+        result["recovery_min"]["no_action"] >= 90
+        or not result["extras"]["no_action_recovered"]
+    )
+    assert 0.6 <= with_plan_min <= 0.8
+    assert 20 <= result["recovery_min"]["with_plan"] <= 35
     assert result["extras"]["no_action_recovered"]
     assert result["extras"]["with_plan_recovered"]
-    assert result["recovery_min"] == {"no_action": 94.0, "with_plan": 0.0}
 
 
 def test_payload_validates_and_all_series_are_time_aligned() -> None:
