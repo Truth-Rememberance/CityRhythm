@@ -4,7 +4,6 @@ import json
 import math
 from collections import Counter
 
-
 # ============================================================
 # 1. PHYSICS CONSISTENCY
 # ============================================================

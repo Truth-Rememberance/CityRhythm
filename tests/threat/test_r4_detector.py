@@ -2,10 +2,10 @@
 import unittest
 
 from r4_detector import (
+    classify,
     physics_consistency,
     replay_detector,
     sensor_trust,
-    classify,
 )
 
 

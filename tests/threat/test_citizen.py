@@ -1,10 +1,7 @@
 
 import unittest
 
-from threat.citizen import (
-    extract_report,
-    report_sensor_agreement
-)
+from threat.citizen import extract_report, report_sensor_agreement
 
 
 class TestCitizenReports(unittest.TestCase):

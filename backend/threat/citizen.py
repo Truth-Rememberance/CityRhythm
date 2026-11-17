@@ -1,21 +1,20 @@
-
-import re
+﻿import re
 from collections import Counter
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 KEYWORDS = {
     "traffic": [
-        "traffic", "jam", "congestion", "ರಸ್ತೆ", "ಟ್ರಾಫಿಕ್",
+        "traffic", "jam", "congestion", "à²°à²¸à³à²¤à³†",
+        "à²Ÿà³à²°à²¾à²«à²¿à²•à³",
         "jam agide", "traffic jam"
     ],
     "power": [
         "power", "electricity", "current", "outage",
-        "ವಿದ್ಯುತ್", "current illa"
+        "à²µà²¿à²¦à³à²¯à³à²¤à³", "current illa"
     ],
     "water": [
-        "water", "supply", "leak", "ಪानी", "ನೀರು",
-        "water illa"
+        "water", "supply", "leak", "à²ªà¤¾à¤¨à¥€",
+        "à²¨à³€à²°à³", "water illa"
     ]
 }
 
@@ -36,10 +35,7 @@ def detect_language(text):
 
 
 def extract_report(text, llm=None):
-    """
-    Extract structured information from a citizen complaint.
-    Uses llm.complete when available; otherwise uses keyword fallback.
-    """
+    """Extract structured information from a citizen complaint."""
 
     if not isinstance(text, str) or not text.strip():
         return {
@@ -52,7 +48,6 @@ def extract_report(text, llm=None):
     language = detect_language(text)
     cleaned = text.lower()
 
-    # Optional LLM extraction.
     if llm is not None:
         try:
             result = llm.complete(
@@ -73,10 +68,10 @@ def extract_report(text, llm=None):
                         "extraction_method": "llm"
                     }
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
+            # Fall back to keyword extraction if the LLM fails.
             pass
 
-    # Keyword fallback.
     matched = []
 
     for category, words in KEYWORDS.items():
@@ -100,31 +95,20 @@ def extract_report(text, llm=None):
 
 
 def parse_timestamp(value):
-    """
-    Convert supported timestamps into UTC datetime.
-
-    Supports:
-    - Unix timestamps
-    - ISO 8601 strings
-    - Datetime objects
-
-    Returns None when timestamp is unavailable or invalid.
-    """
+    """Convert supported timestamps into UTC datetime."""
 
     if isinstance(value, datetime):
         result = value
 
     elif isinstance(value, (int, float)) and not isinstance(value, bool):
         try:
-            result = datetime.fromtimestamp(value, tz=timezone.utc)
+            result = datetime.fromtimestamp(value, tz=UTC)
         except (ValueError, OverflowError, OSError):
             return None
 
     elif isinstance(value, str):
         try:
-            result = datetime.fromisoformat(
-                value.replace("Z", "+00:00")
-            )
+            result = datetime.fromisoformat(value)
         except ValueError:
             return None
 
@@ -132,9 +116,9 @@ def parse_timestamp(value):
         return None
 
     if result.tzinfo is None:
-        result = result.replace(tzinfo=timezone.utc)
+        result = result.replace(tzinfo=UTC)
 
-    return result.astimezone(timezone.utc)
+    return result.astimezone(UTC)
 
 
 def find_suspicious_bursts(
@@ -143,20 +127,12 @@ def find_suspicious_bursts(
     min_reports=5,
     unverified_ratio=0.8
 ):
-    """
-    Find groups of unverified reports arriving within a time window.
-
-    Only reports with valid timestamps are considered.
-
-    A suspicious burst is an alert for investigation,
-    not proof of a fake campaign.
-    """
+    """Find groups of unverified reports arriving within a time window."""
 
     if window_minutes <= 0 or min_reports < 1:
         raise ValueError("Invalid burst detection settings")
 
     window_seconds = window_minutes * 60
-
     by_zone = {}
 
     for report in reports:
@@ -174,21 +150,15 @@ def find_suspicious_bursts(
         if not zone:
             continue
 
-        by_zone.setdefault(zone, []).append(
-            (timestamp, report)
-        )
+        by_zone.setdefault(zone, []).append((timestamp, report))
 
     bursts = []
 
     for zone, entries in by_zone.items():
-
         entries.sort(key=lambda item: item[0])
-
-        # Sliding window over timestamped reports.
         left = 0
 
         for right in range(len(entries)):
-
             while (
                 entries[right][0] - entries[left][0]
             ).total_seconds() > window_seconds:
@@ -207,7 +177,6 @@ def find_suspicious_bursts(
             ratio = len(unverified) / len(current)
 
             if ratio >= unverified_ratio:
-
                 burst = {
                     "zone": zone,
                     "report_count": len(current),
@@ -219,9 +188,7 @@ def find_suspicious_bursts(
                     "suspicious": True
                 }
 
-                # Avoid reporting duplicate overlapping windows
-                # with the same start and end.
-                if not bursts or not any(
+                if not any(
                     item["zone"] == zone
                     and item["start_time"] == burst["start_time"]
                     and item["end_time"] == burst["end_time"]
@@ -233,27 +200,19 @@ def find_suspicious_bursts(
 
 
 def report_sensor_agreement(reports, readings):
-    """
-    Compare citizen complaints with sensor readings.
-
-    Reports without matching sensor evidence are marked unverified.
-
-    Also identifies suspicious timestamped report bursts.
-    """
+    """Compare citizen complaints with sensor readings."""
 
     results = []
 
-    zones = set(
+    zones = {
         report.get("zone")
         for report in reports
         if report.get("zone")
-    )
+    }
 
-    # Track individual report verification for burst analysis.
     processed_reports = []
 
     for zone in zones:
-
         zone_reports = [
             report for report in reports
             if report.get("zone") == zone
@@ -268,18 +227,12 @@ def report_sensor_agreement(reports, readings):
         unverified = 0
 
         for report in zone_reports:
-
-            extracted = extract_report(
-                report.get("text", "")
-            )
-
+            extracted = extract_report(report.get("text", ""))
             category = extracted["category"]
 
             matching_reading = any(
                 reading.get("system") == category
-                and isinstance(
-                    reading.get("value"), (int, float)
-                )
+                and isinstance(reading.get("value"), (int, float))
                 and not isinstance(reading.get("value"), bool)
                 and 0 <= reading["value"] <= 1
                 and reading["value"] >= 0.7
@@ -297,8 +250,6 @@ def report_sensor_agreement(reports, readings):
 
         total = len(zone_reports)
 
-        # Preserve the original aggregate burst check
-        # for backward compatibility.
         suspicious_burst = (
             total >= 5
             and unverified / total >= 0.8
@@ -312,7 +263,6 @@ def report_sensor_agreement(reports, readings):
             "suspicious_burst": suspicious_burst
         })
 
-    # New timestamp-aware detection.
     timed_bursts = find_suspicious_bursts(
         processed_reports,
         window_minutes=5,

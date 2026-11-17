@@ -1,10 +1,7 @@
 
 import unittest
 
-from threat.citizen import (
-    find_suspicious_bursts,
-    parse_timestamp
-)
+from threat.citizen import find_suspicious_bursts, parse_timestamp
 
 
 class TestCitizenBursts(unittest.TestCase):
