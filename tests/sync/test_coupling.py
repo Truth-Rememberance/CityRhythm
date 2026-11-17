@@ -1,7 +1,11 @@
 import numpy as np
 
-from backend.sync.coupling import (build_coupling_baseline, coupling_break, pair_coupling,
-                      rolling_pair_coupling)
+from backend.sync.coupling import (
+    build_coupling_baseline,
+    coupling_break,
+    pair_coupling,
+    rolling_pair_coupling,
+)
 from backend.sync.fake_ticks import generate
 from backend.sync.sync_math import build_profile, detrend
 

@@ -17,7 +17,7 @@ def _run(seed, stress_from=None):
 
 
 def test_detrend_removes_daily_cycle():
-    values, nodes, t = _run(1)
+    values, _nodes, t = _run(1)
     profile = build_profile(values, t)
     resid = detrend(values, t, profile)
     assert resid.shape == values.shape

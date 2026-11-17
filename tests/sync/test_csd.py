@@ -1,7 +1,12 @@
 import numpy as np
 
-from backend.sync.csd import (build_csd_baseline, csd_score, rolling_features,
-                 window_features, zone_scores)
+from backend.sync.csd import (
+    build_csd_baseline,
+    csd_score,
+    rolling_features,
+    window_features,
+    zone_scores,
+)
 from backend.sync.fake_ticks import generate
 from backend.sync.sync_math import build_profile, detrend
 
