@@ -1,0 +1,14 @@
+{
+  "name": "cityrhythm-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "echo \"placeholder dev script\"",
+    "build": "echo \"placeholder build script\""
+  }
+}
+

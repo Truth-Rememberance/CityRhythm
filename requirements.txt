@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+websockets
+pydantic>=2
+pyyaml
+requests
+numpy
+scipy
+statsmodels
+networkx
+scikit-learn
+matplotlib
+pytest
+httpx
+ruff
+black

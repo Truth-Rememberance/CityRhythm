@@ -1,0 +1,45 @@
+# CityRhythm Code Owners
+# Folder-to-role mappings with @TODO-R1 ... @TODO-R6 placeholders
+
+# Default fallback
+* @TODO-R1
+
+# Contracts & Documentation
+/contracts/ @TODO-R1
+/docs/ @TODO-R1
+/docs/CONTRACTS.md @TODO-R1
+
+# Config & Data
+/config/ @TODO-R2
+/data/ @TODO-R2
+
+# Backend Services
+/backend/hub/ @TODO-R1
+/backend/common/ @TODO-R1
+/backend/common/llm.py @TODO-R5
+/backend/sim/ @TODO-R2
+/backend/sync/ @TODO-R3
+/backend/threat/ @TODO-R4
+/backend/fix/ @TODO-R5
+
+# Frontend Application & Panels
+/frontend/ @TODO-R6
+/frontend/panels/sync/ @TODO-R3
+/frontend/panels/threat/ @TODO-R4
+/frontend/panels/fix/ @TODO-R5
+/frontend/panels/replay/ @TODO-R1
+
+# Pitch Slides
+/pitch/slides/ @TODO-R1 @TODO-R2 @TODO-R3 @TODO-R4 @TODO-R5 @TODO-R6
+
+# Scripts & Runner
+/scripts/ @TODO-R1
+/run_all.py @TODO-R1
+
+# Tests
+/tests/sim/ @TODO-R2
+/tests/sync/ @TODO-R3
+/tests/threat/ @TODO-R4
+/tests/fix/ @TODO-R5
+/tests/e2e/ @TODO-R1
+
