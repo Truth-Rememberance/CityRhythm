@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "note": "Synthetic holiday calendar for CityRhythm R2. All entries are synthetic; none are real public holidays. An entry with a 'runs' list applies only to runs whose run_id is listed (seed 1005 only, per ERRATA item 2); entries without 'runs' apply to every run.",
+  "holidays": [
+    {
+      "date": "2026-11-20",
+      "name": "Synthetic Holiday (used by calm run seed 1005)",
+      "source": "synthetic",
+      "runs": ["calm-1005"]
+    }
+  ]
+}
