@@ -1,0 +1,79 @@
+{
+  "synthetic": true,
+  "note": "Synthetic Bengaluru zone map for CityRhythm R2. NOT real data. Centroids are approximations.",
+  "zone_order": [
+    "silk_board",
+    "whitefield",
+    "hebbal",
+    "electronic_city",
+    "koramangala",
+    "indiranagar",
+    "jayanagar",
+    "yelahanka"
+  ],
+  "adjacency": {
+    "silk_board": ["koramangala", "electronic_city", "jayanagar"],
+    "whitefield": ["indiranagar"],
+    "hebbal": ["indiranagar", "yelahanka"],
+    "electronic_city": ["silk_board"],
+    "koramangala": ["silk_board", "indiranagar", "jayanagar"],
+    "indiranagar": ["koramangala", "whitefield", "hebbal"],
+    "jayanagar": ["silk_board", "koramangala"],
+    "yelahanka": ["hebbal"]
+  },
+  "default_capacity": {
+    "traffic": {"value": 200, "unit": "veh_per_min"},
+    "power": {"value": 60, "unit": "MW"},
+    "water": {"value": 30, "unit": "kL_per_min"}
+  },
+  "zones": [
+    {
+      "id": "silk_board",
+      "profile": "junction",
+      "centroid": {"lat": 12.917, "lng": 77.623},
+      "capacity_multiplier": {"traffic": 1.2, "power": 1.0, "water": 1.0}
+    },
+    {
+      "id": "whitefield",
+      "profile": "it_corridor",
+      "centroid": {"lat": 12.969, "lng": 77.750},
+      "capacity_multiplier": {"traffic": 1.0, "power": 1.15, "water": 1.05}
+    },
+    {
+      "id": "hebbal",
+      "profile": "mixed",
+      "centroid": {"lat": 13.036, "lng": 77.597},
+      "capacity_multiplier": {"traffic": 1.0, "power": 1.0, "water": 1.0}
+    },
+    {
+      "id": "electronic_city",
+      "profile": "it_corridor",
+      "centroid": {"lat": 12.845, "lng": 77.660},
+      "capacity_multiplier": {"traffic": 0.95, "power": 1.1, "water": 1.0}
+    },
+    {
+      "id": "koramangala",
+      "profile": "commercial",
+      "centroid": {"lat": 12.935, "lng": 77.624},
+      "capacity_multiplier": {"traffic": 1.05, "power": 1.0, "water": 1.0}
+    },
+    {
+      "id": "indiranagar",
+      "profile": "commercial",
+      "centroid": {"lat": 12.978, "lng": 77.640},
+      "capacity_multiplier": {"traffic": 1.0, "power": 1.0, "water": 0.95}
+    },
+    {
+      "id": "jayanagar",
+      "profile": "residential",
+      "centroid": {"lat": 12.925, "lng": 77.583},
+      "capacity_multiplier": {"traffic": 0.9, "power": 0.95, "water": 1.05}
+    },
+    {
+      "id": "yelahanka",
+      "profile": "residential",
+      "centroid": {"lat": 13.100, "lng": 77.596},
+      "capacity_multiplier": {"traffic": 0.85, "power": 0.9, "water": 1.0}
+    }
+  ]
+}
