@@ -1,0 +1,11 @@
+{
+  "currency_unit": "cost_points",
+  "action_costs": {
+    "shift_pump": {"cost": 2, "effect_scale": 0.35, "disruption": 0.1},
+    "offset_signal": {"cost": 1, "effect_scale": 0.25, "disruption": 0.05},
+    "shed_load": {"cost": 6, "effect_scale": 0.5, "disruption": 0.5},
+    "reroute": {"cost": 3, "effect_scale": 0.3, "disruption": 0.2},
+    "shift_schedule": {"cost": 2, "effect_scale": 0.25, "disruption": 0.1}
+  },
+  "zone_overrides": {}
+}
