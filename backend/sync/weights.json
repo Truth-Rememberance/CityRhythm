@@ -1,5 +1,7 @@
 {
   "csd": 0.5,
+  "csd_floor": 0.3,
+  "warn_persist_min": 10,
   "coupling": 0.3,
   "phase": 0.2,
   "note": "provisional v1 weights; re-tune on R2's v2 runs"

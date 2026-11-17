@@ -1,6 +1,6 @@
 import numpy as np
 
-from backend.sync.sync_index import status, sync_index
+from backend.sync.sync_index import soften, status, sync_index
 
 W = {"csd": 0.5, "coupling": 0.3, "phase": 0.2}
 BANDS = (70.0, 40.0)
@@ -33,3 +33,20 @@ def test_status_bands():
     assert status(55, BANDS) == "drifting"
     assert status(40, BANDS) == "drifting"
     assert status(20, BANDS) == "critical"
+
+
+def test_soften_floor_is_zero():
+    assert float(soften(0.4, 0.4)) == 0.0
+
+
+def test_soften_one_is_one():
+    assert float(soften(1.0, 0.4)) == 1.0
+
+
+def test_soften_stretches_scores_above_floor():
+    assert abs(float(soften(0.7, 0.4)) - 0.5) < 1e-6
+
+
+def test_soften_array_keeps_shape():
+    scores = np.array([[0.4, 0.7], [1.0, 0.2]])
+    assert soften(scores, 0.4).shape == scores.shape

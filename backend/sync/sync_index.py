@@ -14,6 +14,22 @@ def load_weights(path=WEIGHTS_PATH):
     return {k: float(raw[k]) for k in SCORE_KEYS}
 
 
+def soften(score, floor):
+    """Scores below the floor count as 0; the rest is stretched to 0-1."""
+    s = np.asarray(score, dtype=float)
+    return np.clip((s - floor) / (1.0 - floor), 0.0, 1.0)
+
+
+def load_csd_floor(path=WEIGHTS_PATH):
+    with open(path) as f:
+        return float(json.load(f).get("csd_floor", 0.0))
+
+
+def load_warn_persist(path=WEIGHTS_PATH):
+    with open(path) as f:
+        return int(json.load(f).get("warn_persist_min", 0))
+
+
 def load_bands(path=None):
     """Read the status cut-offs from config/thresholds.json if it exists.
 
