@@ -10,7 +10,6 @@ from backend.fix._local_contracts import Action, Tick
 class Sim(Protocol):
     """Minimal deterministic simulation interface used by ROLE 5."""
 
-    @property
     def snapshot(self) -> dict[str, Any]:
         """Return a snapshot of current simulator state."""
         ...
